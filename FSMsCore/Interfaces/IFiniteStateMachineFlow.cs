@@ -5,13 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace FSMsCore.Interfaces;
 
-public interface IFiniteStateMachineFlow
-{
-    public  List<int> NextState {get;}
-
-    public  Func<IFiniteStateModel, CancellationToken, Task<IFiniteStateMachine>> EventAction {get;}
-}
-
+public record class IFiniteStateMachineFlow(List<int> NextState, Func<IFiniteStateModel, CancellationToken, Task<IFiniteStateMachine>> EventAction);
 public interface IFiniteStateMachineFlowDictionary {
     public string Name { get; }
 

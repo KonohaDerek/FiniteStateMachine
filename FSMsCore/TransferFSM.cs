@@ -2,6 +2,7 @@
 
 using FSMsCore.Enums;
 using FSMsCore.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace FSMsCore;
 
@@ -34,32 +35,31 @@ public class TransferStateMachineFlowDictionary : IFiniteStateMachineFlowDiction
     public Dictionary<int, IFiniteStateMachineFlow> Flows => new Dictionary<int, IFiniteStateMachineFlow>(){
             {
                 (int)TransferState.New,
-                new TransferStateMachineFlow([(int)TransferState.Padding], TransferStateMachineFlow.OnNew)
+                new IFiniteStateMachineFlow([(int)TransferState.Padding], OnNew)
             },
             {
                 (int)TransferState.Padding,
-                new TransferStateMachineFlow([], TransferStateMachineFlow.OnPadding)
+                new IFiniteStateMachineFlow([], OnPadding)
             }
         };
-}
 
-public class TransferStateMachineFlow(List<int> nextStates, Func<IFiniteStateModel, CancellationToken, Task<IFiniteStateMachine>> eventAction) : IFiniteStateMachineFlow
-{
-    public List<int> NextState => nextStates;
+    private readonly ILogger<TransferStateMachineFlowDictionary> logger;
+    public TransferStateMachineFlowDictionary(ILogger<TransferStateMachineFlowDictionary> logger) {
+        this.logger = logger;
+    }
 
-    public Func<IFiniteStateModel, CancellationToken, Task<IFiniteStateMachine>> EventAction => eventAction;
-
-    public static async Task<IFiniteStateMachine> OnNew(IFiniteStateModel transfer, CancellationToken cancellationToken)
+    public async Task<IFiniteStateMachine> OnNew(IFiniteStateModel transfer, CancellationToken cancellationToken)
     {
         await Task.Yield();
         // order.StateRemark += $"{Environment.NewLine} ({DateTime.UtcNow:YYYYMMddHHmmss}): Order State Changed to OnNew";
+        logger.LogInformation($"{Environment.NewLine} ({DateTime.UtcNow:YYYYMMddHHmmss}): Transfer State {(TransferState)transfer.CurrentState} to {TransferState.Padding}");
         return new TransferStateMachine(transfer, (int)TransferState.Padding);
     }
 
-    public static async Task<IFiniteStateMachine> OnPadding(IFiniteStateModel transfer, CancellationToken cancellationToken)
+    public async Task<IFiniteStateMachine> OnPadding(IFiniteStateModel transfer, CancellationToken cancellationToken)
     {
         await Task.Yield();
-        // order.StateRemark += $"{Environment.NewLine} ({DateTime.UtcNow:YYYYMMddHHmmss}): Order State Changed to OnNew";
+        logger.LogInformation($"{Environment.NewLine} ({DateTime.UtcNow:YYYYMMddHHmmss}): Transfer State {(TransferState)transfer.CurrentState} to {FiniteState.Done}");
         return new TransferStateMachine(transfer, (int)FiniteState.Done);
     }
 }
