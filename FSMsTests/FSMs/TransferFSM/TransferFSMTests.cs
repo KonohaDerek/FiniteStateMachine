@@ -38,6 +38,8 @@ public class TransferFSMTests
         var mediator = container.GetInstance<IMediator>();
 
         var response = await mediator.Send(new TransferStateMachine(transfer, (int)TransferState.Padding));
-        Assert.AreEqual(response.CurrentState, (int)TransferState.Padding);
+        var newTransfer = (Transfer)response;
+        Assert.AreEqual(newTransfer.CurrentState, (int)TransferState.Padding);
+        Assert.AreEqual(newTransfer.Name , transfer.Name);
     }
 }
